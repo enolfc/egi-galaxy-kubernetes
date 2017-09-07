@@ -1,0 +1,43 @@
+---
+  apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    name: galaxy-proxy
+  spec:
+    replicas: 1
+    template:
+      metadata:
+        labels:
+          app: galaxy-proxy
+      spec:
+        containers:
+        - name: galaxy-proxy
+          image: enolfc/apacheshib
+          ports:
+          - containerPort: 80
+          env:
+          - name: TEST_ENV
+            value: "123"
+          # ideally this should go in /etc/shibboleth/certs
+          # but with proper permission 
+          volumeMounts:
+          - name: shib-certs
+            readOnly: true
+            mountPath: /etc/shib-certs
+        volumes:
+        - name: shib-certs
+          secret:
+            secretName: shib-certs
+---
+  kind: Service
+  apiVersion: v1
+  metadata:
+    name: galaxy-proxy
+  spec:
+    selector:
+      app: galaxy-proxy
+    ports:
+      - protocol: TCP
+        port: 80
+        targetPort: 80
+        name: galaxy-proxy

@@ -1,0 +1,48 @@
+---
+  apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    name: galaxy
+  spec:
+    replicas: 1
+    template:
+      metadata:
+        labels:
+          app: galaxy
+      spec:
+        containers:
+        - name: galaxy
+          image: bgruening/galaxy-stable
+          command: ["/bin/sh", "-c"]
+          args:
+          - cp /etc/config/nginx.conf /etc/nginx/nginx.conf;
+            cp /etc/config/uwsgi.conf /etc/nginx/conf.d/uwsgi.conf;
+            exec /usr/bin/startup
+          ports:
+          - containerPort: 80
+          env:
+          - name: GALAXY_CONFIG_USE_REMOTE_USER
+            value: "True"
+          - name: GALAXY_CONFIG_REMOTE_USER_LOGOUT_HREF
+            value: https://galaxy-hub.fedcloud-tf.fedcloud.eu/Shibboleth.sso/Logout
+          volumeMounts:
+          - name: nginx-config
+            mountPath: /etc/config
+        volumes:
+        - name: nginx-config
+          configMap:
+            name: galaxy-nginx
+---
+  kind: Service
+  apiVersion: v1
+  metadata:
+    name: galaxy-server
+  spec:
+    selector:
+      app: galaxy
+    ports:
+      - protocol: TCP
+        port: 80
+        targetPort: 80
+        name: galaxy
+

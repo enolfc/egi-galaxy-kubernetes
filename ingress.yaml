@@ -1,0 +1,15 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: galaxy-server
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: galaxy-hub.fedcloud-tf.fedcloud.eu
+    http:
+      paths:
+      - backend:
+          serviceName: galaxy-proxy
+          servicePort: 80
